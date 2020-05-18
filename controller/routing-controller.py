@@ -37,7 +37,6 @@ class RoutingController(object):
         with open("topology.csv", "w") as file:
             writer = csv.writer(file)
             for sw_name in switches:
-                pdb.set_trace()
                 writer.writerow([sw_name] + switches[sw_name])
 
     def set_table_defaults(self):
