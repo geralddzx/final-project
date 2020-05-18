@@ -24,7 +24,7 @@ class RoutingController(object):
             thrift_port = self.topo.get_thrift_port(p4switch)
             self.controllers[p4switch] = SimpleSwitchAPI(thrift_port)
 
-    def self.write_topology():
+    def self.write_topology(self):
         pdb.set_trace()
 
     def set_table_defaults(self):
