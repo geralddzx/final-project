@@ -1,6 +1,7 @@
 from p4utils.utils.topology import Topology
 from p4utils.utils.sswitch_API import SimpleSwitchAPI
 import pdb
+import csv
 
 class RoutingController(object):
 
@@ -33,7 +34,10 @@ class RoutingController(object):
                 switches.setdefault(conn, set())
                 switches[sw_name].add(conn)
                 switches[conn].add(sw_name)
-        pdb.set_trace()
+        with open("topology.csv", "w") as file:
+            writer = csv.writer(file)
+            for sw_name in switches:
+                pdb.set_trace()
 
     def set_table_defaults(self):
         for controller in self.controllers.values():
