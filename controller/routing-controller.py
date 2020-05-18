@@ -25,12 +25,15 @@ class RoutingController(object):
             self.controllers[p4switch] = SimpleSwitchAPI(thrift_port)
 
     def write_topology(self):
+        switches = {}
         for sw_name, controller in self.controllers.items():
-            pdb.set_trace()
-            for intf, node in self.topo.get_interfaces_to_node(sw_name).items():
-                node_type = self.topo.get_node_type(node)
-                port_number = self.topo.interface_to_port(sw_name, intf)
-                self.controllers[sw_name].table_add("egress_type", "set_node_type", [str(port_number)], [node_type == "host" and "1" or "2"])
+            switches.setdefault(sw_name, set())
+            connections = self.topo.get_interfaces_to_node('s1').values()
+            for conn in connections:
+                switches.setdefault(conn, set())
+                switches[sw_name].append(conn)
+                switches[conn].append(sw_name)
+        pdb.set_trace()
 
     def set_table_defaults(self):
         for controller in self.controllers.values():
