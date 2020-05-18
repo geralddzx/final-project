@@ -28,9 +28,8 @@ class RoutingController(object):
         switches = {}
         for sw_name, controller in self.controllers.items():
             switches.setdefault(sw_name, set())
-            connections = self.topo.get_interfaces_to_node('s1').values()
+            connections = self.topo.get_interfaces_to_node(sw_name).values()
             for conn in connections:
-                print(sw_name, conn)
                 switches.setdefault(conn, set())
                 switches[sw_name].add(conn)
                 switches[conn].add(sw_name)
