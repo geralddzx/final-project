@@ -28,16 +28,17 @@ class RoutingController(object):
     def write_topology(self):
         switches = {}
         for sw_name, controller in self.controllers.items():
-            switches.setdefault(sw_name, set())
+            switches.setdefault(sw_name, [])
             connections = self.topo.get_interfaces_to_node(sw_name).values()
             for conn in connections:
-                switches.setdefault(conn, set())
+                switches.setdefault(conn, [])
                 switches[sw_name].add(conn)
                 switches[conn].add(sw_name)
         with open("topology.csv", "w") as file:
             writer = csv.writer(file)
             for sw_name in switches:
                 pdb.set_trace()
+                writer.writerow([sw_name] + switches[sw_name])
 
     def set_table_defaults(self):
         for controller in self.controllers.values():
