@@ -32,8 +32,8 @@ class RoutingController(object):
             connections = self.topo.get_interfaces_to_node(sw_name).values()
             for conn in connections:
                 switches.setdefault(conn, [])
-                switches[sw_name].add(conn)
-                switches[conn].add(sw_name)
+                switches[sw_name].append(conn)
+                switches[conn].append(sw_name)
         with open("topology.csv", "w") as file:
             writer = csv.writer(file)
             for sw_name in switches:
