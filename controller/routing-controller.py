@@ -30,6 +30,7 @@ class RoutingController(object):
             switches.setdefault(sw_name, set())
             connections = self.topo.get_interfaces_to_node('s1').values()
             for conn in connections:
+                pdb.set_trace()
                 switches.setdefault(conn, set())
                 switches[sw_name].add(conn)
                 switches[conn].add(sw_name)
