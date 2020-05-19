@@ -44,8 +44,11 @@ class RoutingController(object):
             points = switches.keys()
             writer.writerow(points)
             for i in range(len(points)):
+                paths = []
                 for j in range(len(points)):
-                    pdb.set_trace()
+                    shortest_paths = self.topo.get_shortest_paths_between_nodes(points[i], points[j])
+                    paths.append(len(shortest_paths[0]) - 1)
+                writer.writerow(paths)
 
     def set_table_defaults(self):
         for controller in self.controllers.values():
