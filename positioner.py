@@ -4,61 +4,72 @@ import random
 import math
 import matplotlib.pyplot as plt
 
-alpha = 0.01
-points = dict()
+points = []
+x = []
+y = []
+connections = []
+alpha = 0.002
 
 def make_plot():
     plt.clf()
-    x = []
-    y = []
-    labels = []
-    for point, point_data in points.items():
-        labels.append(point)
-        x.append(point_data[0])
-        y.append(point_data[1])
-
     plt.scatter(x, y)
-
-    for i in range(len(x)):
-        plt.annotate(labels[i], (x[i], y[i]))
+    for i in range(len(points)):
+        plt.annotate(points[i], (x[i], y[i]))
     plt.show()
 
 def compute_score():
     loss = 0
-    for point, point_data in points.items():
-        for target, target_data in points.items():
-            if target in point_data[2]:
-                distance = (point_data[0] - target_data[0]) ** 2 + (point_data[1] - target_data[1]) ** 2
-                loss += distance
-    return loss
+    for i in range(len(points)):
+        for j in range(len(points)):
+            if points[j] in connections[i]:
+                loss += get_distance(x[i] - x[j], y[i] - y[j]) ** 2
+    return -loss
 
+def get_distance(x, y):
+    return max(0.00000001, x ** 2 + y ** 2)
+
+def bound(x):
+    return max(min(x, 1), 0)
 
 with open("topology.csv", "r") as file:
     reader = csv.reader(file)
     for row in reader:
-        points[row[0]] = [random.uniform(0, 1), random.uniform(0, 1), set(row[1:])]
+        points.append(row[0])
+        x.append(random.uniform(0, 1))
+        y.append(random.uniform(0, 1))
+        connections.append(set(row[1:]))
 
-for i in range(10000):
-    for point, point_data in points.items():
-        for target, target_data in points.items():
-            if target != point:
-                # if random.random() < 0.1:
-                #     old_score = compute_score()
-                #     x, y = point_data[0], point_data[1]
-                #     point_data[0] = target_data[0]
-                #     point_data[1] = target_data[1]
-                #     target_data[0] = x
-                #     target_data[1] = y
-                #     if old_score > compute_score():
-                #         target_data[0] = point_data[0]
-                #         target_data[1] = point_data[1]
-                #         point_data[0] = x
-                #         point_data[1] = y
+for n in range(10000):
+    for i in range(len(points)):
+        for j in range(len(points)):
+            if random.random() < 0.01:
+                old_score = compute_score()
+                x0, y0 = x[i], y[i]
+                x[i], y[i] = x[j], y[j]
+                x[j], y[j] = x0, y0
+                if old_score > compute_score():
+                    x[j], y[j] = x[i], y[i]
+                    x[i], y[i] = x0, y0
 
+            diff = (x[j] - x[i], y[j] - y[i])
+            distance = get_distance(diff[0], diff[1])
+            scale = -alpha / distance
+            x[i] = bound(x[i] + scale * diff[0])
+            y[i] = bound(y[i] + scale * diff[1])
 
-                diff = (target_data[0] - point_data[0], target_data[1] - point_data[1])
-                mag = diff[0] ** 2 + diff[1] ** 2
-                if mag:
+            if points[j] in connections[i]:
+                scale = distance ** 4 * alpha
+                x[i] = x[i] + scale * diff[0]
+                y[i] = y[i] + scale * diff[1]
+            #     else:
+            #         scale = mag ** 2 / mag
+            #     beta = alpha * scale
+
+        diff = (0.5 - x[i], 0.5 - y[i])
+        scale = alpha * len(connections[i]) ** 2
+        x[i] += diff[0] * scale
+        y[i] += diff[1] * scale
+
                     #
                     # if mag:
                     #     if not target in point_data[2]:
@@ -67,27 +78,18 @@ for i in range(10000):
                     #         scale = mag ** 2 / mag
                     #     beta = alpha * scale
 
-                    beta = -1 / mag
+                    # beta = -1 / mag
 
-                    if target in point_data[2]:
-                        beta += math.exp(mag) * 10
+                    # if target in point_data[2]:
+                    #     beta += math.exp(mag) * 10
 
-                    beta = beta * alpha
+                #
+                # point_data[0] += random.uniform(-alpha * 2, alpha * 2)
+                # point_data[1] += random.uniform(-alpha * 2, alpha * 2)
 
-                    new_x = diff[0] * beta + point_data[0]
-                    point_data[0] = max(min(new_x, 1), 0)
-                    new_y = diff[1] * beta + point_data[1]
-                    point_data[1] = max(min(new_y, 1), 0)
 
-                point_data[0] += random.uniform(-alpha * 2, alpha * 2)
-                point_data[1] += random.uniform(-alpha * 2, alpha * 2)
 
-                center_diff = (0.5 - point_data[0], 0.5 - point_data[1])
-                scale = (len(point_data[2]) / len(points)) ** 2
-                point_data[0] += center_diff[0] * scale
-                point_data[1] += center_diff[1] * scale
+                # alpha *= 0.99999999
 
-                alpha *= 0.99999999
-
-    if i % 1000 == 0:
+    if n % 100 == 0:
         make_plot()
