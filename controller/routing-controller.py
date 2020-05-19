@@ -39,6 +39,14 @@ class RoutingController(object):
             for sw_name in switches:
                 writer.writerow([sw_name] + switches[sw_name])
 
+        with open("paths.csv", "w") as file:
+            writer = csv.writer(file)
+            points = switches.keys()
+            writer.writerow(points)
+            for i in range(len(points)):
+                for j in range(len(points)):
+                    pdb.set_trace()
+
     def set_table_defaults(self):
         for controller in self.controllers.values():
             controller.table_set_default("ipv4_lpm", "drop", [])
