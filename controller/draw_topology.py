@@ -17,7 +17,7 @@ def run(topology):
             neighbors = []
             for interface, neighbor in topology.get_interfaces_to_node(node).items():
                 port = topology.interface_to_port(node, interface)
-                neighbors.append(port + " " + neighbor)
+                neighbors.append(str(port) + " " + neighbor)
             writer.writerow(neighbors)
 
     with open("paths.csv", "w") as file:
