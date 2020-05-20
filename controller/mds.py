@@ -89,7 +89,8 @@ def draw(stdscr):
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
 
-    for num_iteration in range(num_iterations):
+    iter = 0
+    while iter < num_iterations:
         for i in range(len(nodes)):
             for j in range(len(nodes)):
                 expected = paths[i][j]
@@ -104,6 +105,7 @@ def draw(stdscr):
 
                     x[i] += diff[0] * delta
                     y[i] += diff[1] * delta
+        iter += 1
         render(stdscr)
 
     stdscr.getch()
