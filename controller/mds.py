@@ -2,7 +2,6 @@ import csv
 import pdb
 import random
 import math
-import matplotlib.pyplot as plt
 from curses import wrapper
 import curses
 import numpy as np
@@ -18,15 +17,15 @@ connections = []
 interfaces = []
 num_iterations = 300
 
-def make_plot():
-    plt.clf()
-    plt.scatter(x, y)
-    for i in range(len(points)):
-        plt.annotate(points[i], (x[i], y[i]))
-    # plt.show()
-    plt.show(block=False)
-    plt.pause(0.01)
-    plt.close()
+# def make_plot():
+#     plt.clf()
+#     plt.scatter(x, y)
+#     for i in range(len(points)):
+#         plt.annotate(points[i], (x[i], y[i]))
+#     # plt.show()
+#     plt.show(block=False)
+#     plt.pause(0.01)
+#     plt.close()
 
 def get_distance(pair):
     return math.sqrt(pair[0] ** 2 + pair[1] ** 2)
