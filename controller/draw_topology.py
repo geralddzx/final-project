@@ -18,7 +18,7 @@ y = []
 alpha = 0.002 # learning rate
 neighbors = [] # neighbors of each node
 interfaces = [] # interfaces of each node corresponding to each neighbor in neighbors
-num_iterations = 5000
+num_iterations = 2500
 num_edges = 0 # edge count, this is used to determine whether to show the interfaces in the drawing
 
 # load eges from file
@@ -104,7 +104,7 @@ def render(stdscr):
 
 # make drawing better by bringing nodes closer to theoretical graph distance between each other
 # http://www.itginsight.com/Files/paper/AN%20ALGORITHM%20FOR%20DRAWING%20GENERAL%20UNDIRECTED%20GRAPHS(Kadama%20Kawai%20layout).pdf
-def train(stdscr):
+def train(stdscr, render):
     iter = 0
     while iter < num_iterations:
         for i in range(len(nodes)):
@@ -129,4 +129,5 @@ def train(stdscr):
     render(stdscr)
     stdscr.getch()
 
-wrapper(train)
+print("training model...if you want to see training process, run python3 controller/draw_topology.py true")
+wrapper(train, len(sys.argv) > 1)
