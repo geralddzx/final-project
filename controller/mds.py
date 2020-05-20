@@ -5,47 +5,37 @@ import math
 from curses import wrapper
 import curses
 import numpy as np
-import time
-
-points = None
-paths = []
-x = []
-y = []
-alpha = 0.02
-beta = 0.0001
-connections = []
-interfaces = []
-num_iterations = 500
-
-# def make_plot():
-#     plt.clf()
-#     plt.scatter(x, y)
-#     for i in range(len(points)):
-#         plt.annotate(points[i], (x[i], y[i]))
-#     # plt.show()
-#     plt.show(block=False)
-#     plt.pause(0.01)
-#     plt.close()
 
 def get_distance(pair):
     return math.sqrt(pair[0] ** 2 + pair[1] ** 2)
 
+nodes = None
+paths = []
+x = []
+y = []
+alpha = 0.02
+neighbors = []
+interfaces = []
+num_iterations = 500
+edges = 0
+
 with open("edges.csv", "r") as file:
     reader = csv.reader(file)
-    points = next(reader)
+    nodes = next(reader)
     for row in reader:
-        conn = []
-        inter = []
-        for connection in row:
-            port, node = connection.split(" ")
-            conn.append(node)
-            inter.append(port)
-        connections.append(conn)
-        interfaces.append(inter)
+        node_neighbors = []
+        node_interfaces = []
+        for interface in row:
+            port, node = interface.split(" ")
+            node_neighbors.append(node)
+            node_interfaces.append(port)
+            edges += 1
+        neighbors.append(node_neighbors)
+        interfaces.append(node_interfaces)
 
 with open("paths.csv", "r") as file:
     reader = csv.reader(file)
-    points = next(reader)
+    nodes = next(reader)
     for row in reader:
         distances = []
         for i in row:
@@ -54,25 +44,23 @@ with open("paths.csv", "r") as file:
         x.append(random.uniform(-1, 1))
         y.append(random.uniform(-1, 1))
 
-for num in range(num_iterations):
-    for i in range(len(points)):
-        for j in range(len(points)):
-            expected = paths[i][j]
-            if expected:
-                diff = (x[j] - x[i], y[j] - y[i])
-                distance = get_distance(diff)
-                if num / num_iterations < 0.5:
-                    delta = math.log(distance / expected)
-                else:
-                    delta = -(expected / distance) + 1
-                # delta = delta * (1 / distance) ** beta
+def train():
+    for num in range(num_iterations):
+        for i in range(len(nodes)):
+            for j in range(len(nodes)):
+                expected = paths[i][j]
+                if expected:
+                    diff = (x[j] - x[i], y[j] - y[i])
+                    distance = get_distance(diff)
+                    if num / num_iterations < 0.5:
+                        delta = math.log(distance / expected)
+                    else:
+                        delta = -(expected / distance) + 1
+                    delta *= alpha
 
-                delta *= alpha
-
-                x[i] += diff[0] * delta
-                y[i] += diff[1] * delta
-    beta = beta * 1.1
-    # make_plot()
+                    x[i] += diff[0] * delta
+                    y[i] += diff[1] * delta
+train()
 
 def draw(stdscr):
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
@@ -81,18 +69,17 @@ def draw(stdscr):
     min_y = np.array(y).min()
     width = (np.array(x).max() - min_x) * 1.05
     height = (np.array(y).max() - min_y) * 1.05
+    draw_eth = edges + len(nodes) < 0.01 * curses.LINES * curses.COLS
 
     for i in range(len(x)):
         x[i] = (x[i] - min_x) / width * curses.COLS
         y[i] = (y[i] - min_y) / height * curses.LINES
 
     for i in range(len(x)):
-        stdscr.addstr(int(y[i]), int(x[i]), points[i], curses.A_BOLD | curses.color_pair(1))
+        stdscr.addstr(int(y[i]), int(x[i]), nodes[i], curses.A_BOLD | curses.color_pair(1))
 
-        for k in range(len(connections[i])):
-            j = points.index(connections[i][k])
-            x1 = int(x[j])
-            y1 = int(y[j])
+        for k in range(len(neighbors[i])):
+            j = nodes.index(neighbors[i][k])
 
             diff = (x[j]- x[i], y[j] - y[i])
             if diff[0] and diff[1]:
@@ -103,13 +90,14 @@ def draw(stdscr):
                     p = step / distance
                     (point_x, point_y) = (x[i] + diff[0] * p, y[i] + diff[1] * p)
 
-                    if step == 10:
-                        stdscr.addstr(int(point_y), int(point_x), interfaces[i][k], curses.color_pair(2))
-                    elif step % 7 == 0:
+                    if step == 20 and draw_eth:
+                        if stdscr.inch(int(point_y), int(point_x)) == 32:
+                            stdscr.addstr(int(point_y), int(point_x), interfaces[i][k], curses.color_pair(2))
+
+                    if step % 10 == 0:
                         if stdscr.inch(int(point_y), int(point_x)) == 32:
                             stdscr.addch(int(point_y), int(point_x), ".")
                     step += 1
-        stdscr.addstr(int(y[i]), int(x[i]), points[i], curses.A_BOLD | curses.color_pair(1))
     stdscr.addstr(0, 0, "Here's your topology, press any key to continue...")
 
 
