@@ -105,7 +105,7 @@ def render(stdscr):
 
 # make drawing better by bringing nodes closer to theoretical graph distance between each other
 # http://www.itginsight.com/Files/paper/AN%20ALGORITHM%20FOR%20DRAWING%20GENERAL%20UNDIRECTED%20GRAPHS(Kadama%20Kawai%20layout).pdf
-def train(stdscr, render):
+def train(stdscr, should_render):
     iter = 0
     while iter < num_iterations:
         for i in range(len(nodes)):
@@ -125,7 +125,8 @@ def train(stdscr, render):
                     x[i] += diff[0] * delta
                     y[i] += diff[1] * delta
         iter += 1
-        render(stdscr) # render current state
+        if should_render:
+            render(stdscr) # render current state
 
     render(stdscr)
     stdscr.getch()
