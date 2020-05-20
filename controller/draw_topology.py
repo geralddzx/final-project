@@ -1,35 +1,113 @@
-import pdb
 import csv
-import os
+import pdb
+import random
+import math
+from curses import wrapper
+import curses
+import numpy as np
 
-def run(topology):
-    nodes = []
-    hosts = set()
-    interfaces = []
+def get_distance(pair):
+    return math.sqrt(pair[0] ** 2 + pair[1] ** 2)
 
-    for sw_name in topology.get_p4switches().keys():
-        nodes.append(sw_name)
-        for host in topology.get_hosts_connected_to(sw_name):
-            if not host in hosts:
-                nodes.append(host)
-                hosts.add(host)
+nodes = None
+paths = []
+x = []
+y = []
+alpha = 0.005
+neighbors = []
+interfaces = []
+num_iterations = 10000
+edges = 0
 
-    with open("edges.csv", "w") as file:
-        writer = csv.writer(file)
-        writer.writerow(nodes)
-        for node in nodes:
-            neighbors = []
-            if not node in hosts:
-                for interface, neighbor in topology.get_interfaces_to_node(node).items():
-                    neighbors.append(interface.split("-")[1][3:] + " " + neighbor)
-            writer.writerow(neighbors)
+with open("edges.csv", "r") as file:
+    reader = csv.reader(file)
+    nodes = next(reader)
+    for row in reader:
+        node_neighbors = []
+        node_interfaces = []
+        for interface in row:
+            port, node = interface.split(" ")
+            node_neighbors.append(node)
+            node_interfaces.append(port)
+            edges += 1
+        neighbors.append(node_neighbors)
+        interfaces.append(node_interfaces)
 
-    with open("paths.csv", "w") as file:
-        writer = csv.writer(file)
-        writer.writerow(nodes)
+with open("paths.csv", "r") as file:
+    reader = csv.reader(file)
+    nodes = next(reader)
+    for row in reader:
+        distances = []
+        for i in row:
+            distances.append(int(i))
+        paths.append(distances)
+        x.append(random.uniform(0, 1))
+        y.append(random.uniform(0, 1))
+
+def render(stdscr):
+    stdscr.clear()
+    min_x = np.array(x).min()
+    min_y = np.array(y).min()
+    width = (np.array(x).max() - min_x) * 1.05
+    height = (np.array(y).max() - min_y) * 1.05
+    # draw_eth = edges + len(nodes) < 0.01 * curses.LINES * curses.COLS
+    draw_eth = False
+
+    new_x = []
+    new_y = []
+    for i in range(len(x)):
+        new_x.append((x[i] - min_x) / width * curses.COLS)
+        new_y.append((y[i] - min_y) / height * curses.LINES)
+
+    for i in range(len(new_x)):
+        stdscr.addstr(int(new_y[i]), int(new_x[i]), nodes[i], curses.A_BOLD | curses.color_pair(1))
+
+        for k in range(len(neighbors[i])):
+            j = nodes.index(neighbors[i][k])
+
+            diff = (new_x[j]- new_x[i], new_y[j] - new_y[i])
+            if diff[0] and diff[1]:
+                distance = math.sqrt(diff[0] ** 2 + (diff[1] * 2.2) ** 2)
+
+                step = 0
+                while step < distance:
+                    p = step / distance
+                    (point_x, point_y) = (new_x[i] + diff[0] * p, new_y[i] + diff[1] * p)
+
+                    if step == 20 and draw_eth:
+                        if stdscr.inch(int(point_y), int(point_x)) == 32:
+                            stdscr.addstr(int(point_y), int(point_x), interfaces[i][k], curses.color_pair(2))
+
+                    if step % 10 == 0:
+                        if stdscr.inch(int(point_y), int(point_x)) == 32:
+                            stdscr.addch(int(point_y), int(point_x), ".")
+                    step += 1
+    stdscr.addstr(0, 0, "Here's your topology, press any key to continue...")
+    stdscr.refresh()
+
+def draw(stdscr):
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
+
+    iter = 0
+    while iter < num_iterations:
         for i in range(len(nodes)):
-            paths = []
             for j in range(len(nodes)):
-                shortest_paths = topology.get_shortest_paths_between_nodes(nodes[i], nodes[j])
-                paths.append(len(shortest_paths[0]) - 1)
-            writer.writerow(paths)
+                expected = paths[i][j]
+                if expected:
+                    diff = (x[j] - x[i], y[j] - y[i])
+                    distance = get_distance(diff)
+                    if iter / num_iterations < 0.5:
+                        delta = math.log(distance / expected)
+                    else:
+                        delta = -(expected / distance) + 1
+                    delta *= alpha
+
+                    x[i] += diff[0] * delta
+                    y[i] += diff[1] * delta
+        iter += 1
+        render(stdscr)
+
+    stdscr.getch()
+
+wrapper(draw)
