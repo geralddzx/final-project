@@ -80,55 +80,47 @@ def draw(stdscr):
     curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
     min_x = np.array(x).min()
     min_y = np.array(y).min()
-    width = np.array(x).max() - min_x
-    width *= 1.05
-    tile_width = width / curses.COLS
-    height = np.array(y).max() - min_y
-    tile_height = height / curses.LINES
-    height *= 1.05
+    width = (np.array(x).max() - min_x) * 1.05
+    height = (np.array(y).max() - min_y) * 1.05
     pad = curses.newpad(curses.LINES, curses.COLS)
 
+
     for i in range(len(x)):
-        x_coord = (x[i] - min_x) / width * curses.COLS
-        y_coord = (y[i] - min_y) / height * curses.LINES
+        x[i] = (x[i] - min_x) / width * curses.COLS
+        y[i] = (y[i] - min_y) / height * curses.LINES
+
+    for i in range(len(x)):
+        pad.addstr(int(y[i]), int(x[i]), points[i], curses.A_BOLD | curses.color_pair(1))
 
         for k in range(len(connections[i])):
             j = points.index(connections[i][k])
-            x1 = int((x[j] - min_x) / width * curses.COLS)
-            y1 = int((y[j] - min_y) / height * curses.LINES)
+            x1 = int(x[j])
+            y1 = int(y[j])
 
             diff = (x[j]- x[i], y[j] - y[i])
             if diff[0] and diff[1]:
-                step_size = min(abs(tile_width / diff[0]) * 5, abs(tile_height / diff[1]) * 5)
+                distance = math.sqrt(diff[0] ** 2 + (diff[1] * 2.2) ** 2)
 
-                cur = step_size
-                count = 0
-                while cur < 1:
+                step = 0
+                while step < distance:
+                    p = step / distance
+                    (point_x, point_y) = (x[i] + diff[0] * p, y[i] + diff[1] * p)
 
-                    (point_x, point_y) = (x[i] + diff[0] * cur, y[i] + diff[1] * cur)
-                    tile_x, tile_y = ((point_x - min_x) / width * curses.COLS, (point_y - min_y) / height * curses.LINES)
-
-                    if count == 0:
-                        pad.addstr(int(tile_y), int(tile_x), interfaces[i][k], curses.A_DIM | curses.color_pair(2))
-                    else:
-                        if pad.inch(int(tile_y), int(tile_x)) == 32:
-                            pad.addch(int(tile_y), int(tile_x), ".")
-                    cur += step_size
-                    count += 1
-
-
-        pad.addstr(int(y_coord), int(x_coord), points[i], curses.A_BOLD | curses.color_pair(1))
-
-
+                    if step == 7:
+                        pad.addstr(int(point_y), int(point_x), interfaces[i][k], curses.A_DIM | curses.color_pair(2))
+                    elif step % 5 == 0:
+                        if pad.inch(int(point_y), int(point_x)) == 32:
+                            pad.addch(int(point_y), int(point_x), ".")
+                    step += 1
 
 
 
     # stdscr.clear()
     # stdscr.addstr(0, 0, "o")
     # stdscr.refresh()
-
     pad.refresh(0, 0, 0, 0, curses.LINES, curses.COLS)
+    time.sleep(4)
     #
-    input("")
+
 
 wrapper(draw)
