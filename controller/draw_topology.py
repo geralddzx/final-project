@@ -18,7 +18,7 @@ y = []
 alpha = 0.005 # learning rate
 neighbors = [] # neighbors of each node
 interfaces = [] # interfaces of each node corresponding to each neighbor in neighbors
-num_iterations = 2000
+num_iterations = 3000
 num_edges = 0 # edge count, this is used to determine whether to show the interfaces in the drawing
 
 # load eges from file
@@ -116,8 +116,10 @@ def train(stdscr):
                     distance = get_distance(diff) # actual distance of current state of topology
                     if iter / num_iterations < 0.5: # the first half of training
                         delta = math.log(distance / expected_distance) # focus on bringing distance / expected_distance to 1
-                    else:
+                    elif iter / num_iterations < 0.75:
                         delta = -(expected_distance / distance) + 1 # focus on spreading nodes that are too close
+                    else:
+                        delta = -(expected_distance / distance) ** 2 + 1 # focus on spreading nodes even further
                     delta *= alpha # scale by learning rate
 
                     # update position by improving distance between node i and node j
