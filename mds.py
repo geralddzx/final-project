@@ -13,6 +13,7 @@ x = []
 y = []
 alpha = 0.1
 connections = []
+interfaces = []
 
 def make_plot():
     plt.clf()
@@ -30,8 +31,14 @@ def get_distance(pair):
 with open("topology.csv", "r") as file:
     reader = csv.reader(file)
     for row in reader:
-        connections.append(row[1:])
-
+        conn = []
+        inter = []
+        for connection in row[1:]:
+            interface, node = connection.split(" ")
+            conn.append(node)
+            inter.append(interface)
+        connections.append(conn)
+        interfaces.append(inter)
 
 with open("paths.csv", "r") as file:
     reader = csv.reader(file)
@@ -65,6 +72,7 @@ for n in range(1000):
 
 def draw(stdscr):
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
     min_x = np.array(x).min()
     min_y = np.array(y).min()
     width = np.array(x).max() - min_x
@@ -86,15 +94,22 @@ def draw(stdscr):
 
             diff = (x[j]- x[i], y[j] - y[i])
             if diff[0] and diff[1]:
-                step_size = min(abs(tile_width / diff[0]) * 5, abs(tile_height / diff[1]) * 5)
+                step_size = min(abs(tile_width / diff[0]) * 4, abs(tile_height / diff[1]) * 4)
 
                 cur = step_size
+                count = 0
                 while cur < 1:
+
                     (point_x, point_y) = (x[i] + diff[0] * cur, y[i] + diff[1] * cur)
                     tile_x, tile_y = ((point_x - min_x) / width * curses.COLS, (point_y - min_y) / height * curses.LINES)
-                    if pad.inch(int(tile_y), int(tile_x)) == 32:
-                        pad.addch(int(tile_y), int(tile_x), ".")
+
+                    if count == 1:
+                        pad.addstr(int(tile_y), int(tile_x), interfaces[i][k].split("-")[1], curses.A_DIM | curses.color_pair(2))
+                    else:
+                        if pad.inch(int(tile_y), int(tile_x)) == 32:
+                            pad.addch(int(tile_y), int(tile_x), ".")
                     cur += step_size
+                    count += 1
 
 
         pad.addstr(int(y_coord), int(x_coord), points[i], curses.A_BOLD | curses.color_pair(1))
