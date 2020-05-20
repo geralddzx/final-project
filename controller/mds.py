@@ -97,7 +97,7 @@ def draw(stdscr):
                 if expected:
                     diff = (x[j] - x[i], y[j] - y[i])
                     distance = get_distance(diff)
-                    if num_iteration / num_iterations < 0.5:
+                    if iter / num_iterations < 0.5:
                         delta = math.log(distance / expected)
                     else:
                         delta = -(expected / distance) + 1
