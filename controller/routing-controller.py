@@ -14,7 +14,7 @@ class RoutingController(object):
         self.connect_to_switches()
         self.reset_states()
         self.set_table_defaults()
-        draw_topology.run(self)
+        draw_topology.run(self.topo)
 
     def reset_states(self):
         [controller.reset_state() for controller in self.controllers.values()]
