@@ -1,7 +1,6 @@
 from p4utils.utils.topology import Topology
 from p4utils.utils.sswitch_API import SimpleSwitchAPI
-import pdb
-import csv
+import draw_topology
 
 class RoutingController(object):
 
@@ -15,7 +14,7 @@ class RoutingController(object):
         self.connect_to_switches()
         self.reset_states()
         self.set_table_defaults()
-        self.write_topology()
+        draw_topology.run(self)
 
     def reset_states(self):
         [controller.reset_state() for controller in self.controllers.values()]
@@ -24,32 +23,6 @@ class RoutingController(object):
         for p4switch in self.topo.get_p4switches():
             thrift_port = self.topo.get_thrift_port(p4switch)
             self.controllers[p4switch] = SimpleSwitchAPI(thrift_port)
-
-    def write_topology(self):
-        nodes = set()
-        for sw_name, controller in self.controllers.items():
-            nodes.add(sw_name)
-            for host in self.topo.get_hosts_connected_to(sw_name):
-                nodes.add(host)
-        nodes = list(nodes)
-
-        with open("topology.csv", "w") as file:
-            writer = csv.writer(file)
-            for node in nodes:
-                targets = []
-                for interface, target in self.topo.get_interfaces_to_node(node).items():
-                    targets.append(interface + " " + target)
-                writer.writerow(targets)
-
-        with open("paths.csv", "w") as file:
-            writer = csv.writer(file)
-            writer.writerow(nodes)
-            for i in range(len(nodes)):
-                paths = []
-                for j in range(len(nodes)):
-                    shortest_paths = self.topo.get_shortest_paths_between_nodes(nodes[i], nodes[j])
-                    paths.append(len(shortest_paths[0]) - 1)
-                writer.writerow(paths)
 
     def set_table_defaults(self):
         for controller in self.controllers.values():
