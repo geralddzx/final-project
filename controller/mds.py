@@ -15,7 +15,7 @@ alpha = 0.02
 beta = 0.0001
 connections = []
 interfaces = []
-num_iterations = 300
+num_iterations = 500
 
 # def make_plot():
 #     plt.clf()
