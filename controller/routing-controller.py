@@ -15,6 +15,7 @@ class RoutingController(object):
         self.reset_states()
         self.set_table_defaults()
         draw_topology.run(self.topo)
+        import mds
 
     def reset_states(self):
         [controller.reset_state() for controller in self.controllers.values()]
