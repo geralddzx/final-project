@@ -119,7 +119,8 @@ def train(stdscr):
                     elif iter / num_iterations < 0.75:
                         delta = -(expected_distance / distance) + 1 # focus on spreading nodes that are too close
                     else:
-                        delta = -(expected_distance / distance) ** 1.5 + 1 # focus on spreading nodes even further
+                        delta = -(expected_distance / distance) ** 2 + 1 # focus on spreading nodes even further
+                        delta /= 10
                     delta *= alpha # scale by learning rate
 
                     # update position by improving distance between node i and node j
