@@ -13,10 +13,10 @@ nodes = None
 paths = []
 x = []
 y = []
-alpha = 0.02
+alpha = 0.005
 neighbors = []
 interfaces = []
-num_iterations = 1000
+num_iterations = 10000
 edges = 0
 
 with open("edges.csv", "r") as file:
