@@ -6,12 +6,15 @@ The goal of this project is to allow students to visualize their topology in the
 This algorithm should work on any topology, here are some example:
 
 Line Topology
+-------------
 ![line topology](images/line.png "Line Topology")
 
 Medium Topology
+---------------
 ![Medium topology](images/medium.png "Medium Topology")
 
 Fattree Topology
+----------------
 ![Fattree topology](images/fattree.png "Fattree Topology")
 
 Instructions
