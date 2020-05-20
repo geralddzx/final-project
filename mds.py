@@ -31,15 +31,16 @@ def make_plot():
 def get_distance(pair):
     return math.sqrt(pair[0] ** 2 + pair[1] ** 2)
 
-with open("topology.csv", "r") as file:
+with open("edges.csv", "r") as file:
     reader = csv.reader(file)
+    points = next(reader)
     for row in reader:
         conn = []
         inter = []
-        for connection in row[1:]:
-            interface, node = connection.split(" ")
+        for connection in row:
+            port, node = connection.split(" ")
             conn.append(node)
-            inter.append(interface)
+            inter.append(port)
         connections.append(conn)
         interfaces.append(inter)
 
@@ -72,7 +73,7 @@ for num in range(num_iterations):
                 x[i] += diff[0] * delta
                 y[i] += diff[1] * delta
     beta = beta * 1.1
-    make_plot()
+    # make_plot()
 
 def draw(stdscr):
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
@@ -98,7 +99,7 @@ def draw(stdscr):
 
             diff = (x[j]- x[i], y[j] - y[i])
             if diff[0] and diff[1]:
-                step_size = min(abs(tile_width / diff[0]) * 4, abs(tile_height / diff[1]) * 4)
+                step_size = min(abs(tile_width / diff[0]) * 5, abs(tile_height / diff[1]) * 5)
 
                 cur = step_size
                 count = 0
@@ -107,8 +108,8 @@ def draw(stdscr):
                     (point_x, point_y) = (x[i] + diff[0] * cur, y[i] + diff[1] * cur)
                     tile_x, tile_y = ((point_x - min_x) / width * curses.COLS, (point_y - min_y) / height * curses.LINES)
 
-                    if False:
-                        pad.addstr(int(tile_y), int(tile_x), interfaces[i][k].split("-")[1], curses.A_DIM | curses.color_pair(2))
+                    if count == 0:
+                        pad.addstr(int(tile_y), int(tile_x), interfaces[i][k], curses.A_DIM | curses.color_pair(2))
                     else:
                         if pad.inch(int(tile_y), int(tile_x)) == 32:
                             pad.addch(int(tile_y), int(tile_x), ".")
