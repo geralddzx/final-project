@@ -5,6 +5,7 @@ import math
 from curses import wrapper
 import curses
 import numpy as np
+import sys
 
 def get_distance(pair):
     return math.sqrt(pair[0] ** 2 + pair[1] ** 2)
