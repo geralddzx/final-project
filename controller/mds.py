@@ -62,15 +62,7 @@ def train():
                     y[i] += diff[1] * delta
 train()
 
-def draw(stdscr):
-    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
-    min_x = np.array(x).min()
-    min_y = np.array(y).min()
-    width = (np.array(x).max() - min_x) * 1.05
-    height = (np.array(y).max() - min_y) * 1.05
-    draw_eth = edges + len(nodes) < 0.01 * curses.LINES * curses.COLS
-
+def render(min_x, min_y, width, height, draw_eth,stdscr):
     for i in range(len(x)):
         x[i] = (x[i] - min_x) / width * curses.COLS
         y[i] = (y[i] - min_y) / height * curses.LINES
@@ -100,13 +92,19 @@ def draw(stdscr):
                     step += 1
     stdscr.addstr(0, 0, "Here's your topology, press any key to continue...")
 
+def draw(stdscr):
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
+    min_x = np.array(x).min()
+    min_y = np.array(y).min()
+    width = (np.array(x).max() - min_x) * 1.05
+    height = (np.array(y).max() - min_y) * 1.05
+    draw_eth = edges + len(nodes) < 0.01 * curses.LINES * curses.COLS
+    render(min_x, min_y, width, height, draw_eth, stdscr)
 
-    # stdscr.clear()
-    # stdscr.addstr(0, 0, "o")
-    # stdscr.refresh()
+
     stdscr.refresh()
     stdscr.getch()
-    #
 
 
 wrapper(draw)
