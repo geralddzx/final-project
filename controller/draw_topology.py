@@ -21,7 +21,7 @@ def run(topology):
             neighbors = []
             if not node in hosts:
                 for interface, neighbor in topology.get_interfaces_to_node(node).items():
-                    neighbors.append(interface + " " + neighbor)
+                    neighbors.append(interface.split("-")[1] + " " + neighbor)
             writer.writerow(neighbors)
 
     with open("paths.csv", "w") as file:
