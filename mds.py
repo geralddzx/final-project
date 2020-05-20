@@ -6,24 +6,27 @@ import matplotlib.pyplot as plt
 from curses import wrapper
 import curses
 import numpy as np
+import time
 
 points = None
 paths = []
 x = []
 y = []
-alpha = 0.1
+alpha = 0.02
+beta = 0.0001
 connections = []
 interfaces = []
+num_iterations = 300
 
 def make_plot():
     plt.clf()
     plt.scatter(x, y)
     for i in range(len(points)):
         plt.annotate(points[i], (x[i], y[i]))
-    plt.show()
-    # plt.show(block=False)
-    # plt.pause(0.01)
-    # plt.close()
+    # plt.show()
+    plt.show(block=False)
+    plt.pause(0.01)
+    plt.close()
 
 def get_distance(pair):
     return math.sqrt(pair[0] ** 2 + pair[1] ** 2)
@@ -51,24 +54,25 @@ with open("paths.csv", "r") as file:
         x.append(random.uniform(-1, 1))
         y.append(random.uniform(-1, 1))
 
-for n in range(1000):
+for num in range(num_iterations):
     for i in range(len(points)):
         for j in range(len(points)):
             expected = paths[i][j]
             if expected:
                 diff = (x[j] - x[i], y[j] - y[i])
                 distance = get_distance(diff)
-                delta = math.log(distance / expected)
+                if num / num_iterations < 0.5:
+                    delta = math.log(distance / expected)
+                else:
+                    delta = -(expected / distance) + 1
+                # delta = delta * (1 / distance) ** beta
 
                 delta *= alpha
 
                 x[i] += diff[0] * delta
                 y[i] += diff[1] * delta
-
-        # if random.random() < 0:
-        #     x[i] += random.uniform(-1, 1) * alpha
-        #     y[i] += random.uniform(-1, 1) * alpha
-# make_plot()
+    beta = beta * 1.1
+    make_plot()
 
 def draw(stdscr):
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
@@ -103,7 +107,7 @@ def draw(stdscr):
                     (point_x, point_y) = (x[i] + diff[0] * cur, y[i] + diff[1] * cur)
                     tile_x, tile_y = ((point_x - min_x) / width * curses.COLS, (point_y - min_y) / height * curses.LINES)
 
-                    if count == 1:
+                    if False:
                         pad.addstr(int(tile_y), int(tile_x), interfaces[i][k].split("-")[1], curses.A_DIM | curses.color_pair(2))
                     else:
                         if pad.inch(int(tile_y), int(tile_x)) == 32:
@@ -124,6 +128,6 @@ def draw(stdscr):
 
     pad.refresh(0, 0, 0, 0, curses.LINES, curses.COLS)
     #
-    pdb.set_trace()
+    input("")
 
 wrapper(draw)
