@@ -2,10 +2,10 @@ import pdb
 import csv
 import os
 
-def run(topology):
-    nodes = []
-    hosts = set()
-    interfaces = []
+def main(topology):
+    nodes = [] # switches and hosts in topology
+    hosts = set() # hosts in topology
+    interfaces = [] # interfaces of each node in topology in the same order as nodes
 
     for sw_name in topology.get_p4switches().keys():
         nodes.append(sw_name)
@@ -15,21 +15,26 @@ def run(topology):
                 hosts.add(host)
 
     with open("edges.csv", "w") as file:
+        # write node names names
         writer = csv.writer(file)
         writer.writerow(nodes)
+
+        # write interfaces of each node
         for node in nodes:
-            neighbors = []
-            if not node in hosts:
+            neighbors = [] # immediate neighbors of node
+            if not node in hosts: # if a switch
                 for interface, neighbor in topology.get_interfaces_to_node(node).items():
-                    neighbors.append(interface.split("-")[1][3:] + " " + neighbor)
+                    # store interface name and neighbor name in neighbors
+                    neighbors.append(interface.split("-")[1] + " " + neighbor)
             writer.writerow(neighbors)
 
     with open("paths.csv", "w") as file:
         writer = csv.writer(file)
         writer.writerow(nodes)
         for i in range(len(nodes)):
-            paths = []
+            # write short path lengths from each node to each other node
+            path_lengths = []
             for j in range(len(nodes)):
                 shortest_paths = topology.get_shortest_paths_between_nodes(nodes[i], nodes[j])
-                paths.append(len(shortest_paths[0]) - 1)
-            writer.writerow(paths)
+                path_lengths.append(len(shortest_paths[0]) - 1)
+            writer.writerow(path_lengths)
