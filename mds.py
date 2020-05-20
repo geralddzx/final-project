@@ -82,15 +82,13 @@ def draw(stdscr):
     min_y = np.array(y).min()
     width = (np.array(x).max() - min_x) * 1.05
     height = (np.array(y).max() - min_y) * 1.05
-    pad = curses.newpad(curses.LINES, curses.COLS)
-
 
     for i in range(len(x)):
         x[i] = (x[i] - min_x) / width * curses.COLS
         y[i] = (y[i] - min_y) / height * curses.LINES
 
     for i in range(len(x)):
-        pad.addstr(int(y[i]), int(x[i]), points[i], curses.A_BOLD | curses.color_pair(1))
+        stdscr.addstr(int(y[i]), int(x[i]), points[i], curses.A_BOLD | curses.color_pair(1))
 
         for k in range(len(connections[i])):
             j = points.index(connections[i][k])
@@ -106,20 +104,21 @@ def draw(stdscr):
                     p = step / distance
                     (point_x, point_y) = (x[i] + diff[0] * p, y[i] + diff[1] * p)
 
-                    if step == 7:
-                        pad.addstr(int(point_y), int(point_x), interfaces[i][k], curses.A_DIM | curses.color_pair(2))
-                    elif step % 5 == 0:
-                        if pad.inch(int(point_y), int(point_x)) == 32:
-                            pad.addch(int(point_y), int(point_x), ".")
+                    if step == 10:
+                        stdscr.addstr(int(point_y), int(point_x), interfaces[i][k], curses.color_pair(2))
+                    elif step % 7 == 0:
+                        if stdscr.inch(int(point_y), int(point_x)) == 32:
+                            stdscr.addch(int(point_y), int(point_x), ".")
                     step += 1
-
+        stdscr.addstr(int(y[i]), int(x[i]), points[i], curses.A_BOLD | curses.color_pair(1))
+    stdscr.addstr(0, 0, "Here's your topology, press any key to continue...")
 
 
     # stdscr.clear()
     # stdscr.addstr(0, 0, "o")
     # stdscr.refresh()
-    pad.refresh(0, 0, 0, 0, curses.LINES, curses.COLS)
-    time.sleep(4)
+    stdscr.refresh()
+    stdscr.getch()
     #
 
 
