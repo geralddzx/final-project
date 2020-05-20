@@ -3,21 +3,25 @@ import csv
 import os
 
 def run(topology):
-    nodes = set()
+    nodes = []
+    hosts = set()
+    interfaces = []
+
     for sw_name in topology.get_p4switches().keys():
-        nodes.add(sw_name)
+        nodes.append(sw_name)
         for host in topology.get_hosts_connected_to(sw_name):
-            nodes.add(host)
-    nodes = list(nodes)
+            if not host in hosts:
+                nodes.append(host)
+                hosts.add(host)
 
     with open("edges.csv", "w") as file:
         writer = csv.writer(file)
         writer.writerow(nodes)
         for node in nodes:
             neighbors = []
-            for interface, neighbor in topology.get_interfaces_to_node(node).items():
-                port = topology.interface_to_port(node, interface)
-                neighbors.append(str(port) + " " + neighbor)
+            if not node in hosts:
+                for interface, neighbor in topology.get_interfaces_to_node(node).items():
+                    neighbors.append(interface + " " + neighbor)
             writer.writerow(neighbors)
 
     with open("paths.csv", "w") as file:
