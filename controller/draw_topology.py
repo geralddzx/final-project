@@ -16,10 +16,10 @@ nodes = None # nodes in the topology
 path_lengths = []
 x = []
 y = []
-alpha = 0.005 # learning rate
+alpha = 0.01 # learning rate
 neighbors = [] # neighbors of each node
 interfaces = [] # interfaces of each node corresponding to each neighbor in neighbors
-num_iterations = 2500
+num_iterations = 1000
 num_edges = 0 # edge count, this is used to determine whether to show the interfaces in the drawing
 
 # load eges from file
