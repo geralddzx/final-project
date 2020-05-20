@@ -1,6 +1,6 @@
 from p4utils.utils.topology import Topology
 from p4utils.utils.sswitch_API import SimpleSwitchAPI
-import draw_topology
+import save_topology
 
 class RoutingController(object):
 
