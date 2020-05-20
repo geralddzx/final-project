@@ -18,7 +18,7 @@ y = []
 alpha = 0.005 # learning rate
 neighbors = [] # neighbors of each node
 interfaces = [] # interfaces of each node corresponding to each neighbor in neighbors
-num_iterations = 500
+num_iterations = 2000
 num_edges = 0 # edge count, this is used to determine whether to show the interfaces in the drawing
 
 # load eges from file
@@ -52,6 +52,9 @@ with open("paths.csv", "r") as file:
 
 # renders the current state of the topology based on the location of each node
 def render(stdscr):
+    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
+
     stdscr.clear()
     min_x = np.array(x).min()
     min_y = np.array(y).min()
@@ -95,31 +98,35 @@ def render(stdscr):
                         if stdscr.inch(int(point_y), int(point_x)) == 32: # if space not taken by node or interface name
                             stdscr.addch(int(point_y), int(point_x), ".")
                     step += 1
+    stdscr.addstr(0, 0, "Here's your topology, press any key to continue...")
     stdscr.refresh()
 
-def draw(stdscr):
-    curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_BLACK)
 
+# make drawing better by bringing nodes closer to theoretical graph distance between each other
+# http://www.itginsight.com/Files/paper/AN%20ALGORITHM%20FOR%20DRAWING%20GENERAL%20UNDIRECTED%20GRAPHS(Kadama%20Kawai%20layout).pdf
+def train(stdscr):
     iter = 0
     while iter < num_iterations:
         for i in range(len(nodes)):
             for j in range(len(nodes)):
-                expected = path_lengths[i][j]
-                if expected:
+                # theoretical distance between node i and node j
+                expected_distance = path_lengths[i][j]
+                if expected_distance:
                     diff = (x[j] - x[i], y[j] - y[i])
-                    distance = get_distance(diff)
-                    if iter / num_iterations < 0.5:
-                        delta = math.log(distance / expected)
+                    distance = get_distance(diff) # actual distance of current state of topology
+                    if iter / num_iterations < 0.5: # the first half of training
+                        delta = math.log(distance / expected_distance) # focus on bringing distance / expected_distance to 1
                     else:
-                        delta = -(expected / distance) + 1
-                    delta *= alpha
+                        delta = -(expected_distance / distance) + 1 # focus on spreading nodes that are too close
+                    delta *= alpha # scale by learning rate
 
+                    # update position by improving distance between node i and node j
                     x[i] += diff[0] * delta
                     y[i] += diff[1] * delta
         iter += 1
-        render(stdscr)
-    stdscr.addstr(0, 0, "Here's your topology, press any key to continue...")
+        render(stdscr) # render current state
+
+    render(stdscr)
     stdscr.getch()
 
-wrapper(draw)
+wrapper(train)
