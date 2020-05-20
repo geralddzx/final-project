@@ -15,7 +15,7 @@ nodes = None # nodes in the topology
 path_lengths = []
 x = []
 y = []
-alpha = 0.005 # learning rate
+alpha = 0.002 # learning rate
 neighbors = [] # neighbors of each node
 interfaces = [] # interfaces of each node corresponding to each neighbor in neighbors
 num_iterations = 3000
@@ -116,11 +116,8 @@ def train(stdscr):
                     distance = get_distance(diff) # actual distance of current state of topology
                     if iter / num_iterations < 0.5: # the first half of training
                         delta = math.log(distance / expected_distance) # focus on bringing distance / expected_distance to 1
-                    elif iter / num_iterations < 0.75:
-                        delta = -(expected_distance / distance) + 1 # focus on spreading nodes that are too close
                     else:
-                        delta = -(expected_distance / distance) ** 2 + 1 # focus on spreading nodes even further
-                        delta /= 10
+                        delta = -(expected_distance / distance) ** (iter / num_iterations + 0.5) + 1 # focus on spreading nodes that are too close
                     delta *= alpha # scale by learning rate
 
                     # update position by improving distance between node i and node j
