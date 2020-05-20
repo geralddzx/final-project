@@ -9,80 +9,92 @@ import numpy as np
 def get_distance(pair):
     return math.sqrt(pair[0] ** 2 + pair[1] ** 2)
 
-nodes = None
-paths = []
+nodes = None # nodes in the topology
+# length of shortest path of each node to each other node
+# use to determine theoretical distance between nodes
+path_lengths = []
 x = []
 y = []
-alpha = 0.005
-neighbors = []
-interfaces = []
-num_iterations = 10000
-edges = 0
+alpha = 0.005 # learning rate
+neighbors = [] # neighbors of each node
+interfaces = [] # interfaces of each node corresponding to each neighbor in neighbors
+num_iterations = 500
+num_edges = 0 # edge count, this is used to determine whether to show the interfaces in the drawing
 
+# load eges from file
 with open("edges.csv", "r") as file:
     reader = csv.reader(file)
     nodes = next(reader)
     for row in reader:
+        # give node random location initially
+        x.append(random.uniform(0, 1))
+        y.append(random.uniform(0, 1))
+
         node_neighbors = []
         node_interfaces = []
         for interface in row:
             port, node = interface.split(" ")
             node_neighbors.append(node)
             node_interfaces.append(port)
-            edges += 1
+            num_edges += 1
         neighbors.append(node_neighbors)
         interfaces.append(node_interfaces)
 
+# load path lengths from file
 with open("paths.csv", "r") as file:
     reader = csv.reader(file)
     nodes = next(reader)
     for row in reader:
-        distances = []
+        lengths = []
         for i in row:
-            distances.append(int(i))
-        paths.append(distances)
-        x.append(random.uniform(0, 1))
-        y.append(random.uniform(0, 1))
+            lengths.append(int(i))
+        path_lengths.append(lengths)
 
+# renders the current state of the topology based on the location of each node
 def render(stdscr):
     stdscr.clear()
     min_x = np.array(x).min()
     min_y = np.array(y).min()
     width = (np.array(x).max() - min_x) * 1.05
     height = (np.array(y).max() - min_y) * 1.05
-    # draw_eth = edges + len(nodes) < 0.01 * curses.LINES * curses.COLS
-    draw_eth = False
 
-    new_x = []
-    new_y = []
+    # only draw interface if nodes and edges are sparse
+    draw_eth = 2 * num_edges + len(nodes) < 0.01 * curses.LINES * curses.COLS
+
+
+    tile_x = []
+    tile_y = []
+    # convert to tile coordinates
     for i in range(len(x)):
-        new_x.append((x[i] - min_x) / width * curses.COLS)
-        new_y.append((y[i] - min_y) / height * curses.LINES)
+        tile_x.append((x[i] - min_x) / width * curses.COLS)
+        tile_y.append((y[i] - min_y) / height * curses.LINES)
 
-    for i in range(len(new_x)):
-        stdscr.addstr(int(new_y[i]), int(new_x[i]), nodes[i], curses.A_BOLD | curses.color_pair(1))
+    for i in range(len(tile_x)):
+        # print sw_name
+        stdscr.addstr(int(tile_y[i]), int(tile_x[i]), nodes[i], curses.A_BOLD | curses.color_pair(1))
 
-        for k in range(len(neighbors[i])):
-            j = nodes.index(neighbors[i][k])
+        for neighbor in range(len(neighbors[i])):
+            j = nodes.index(neighbors[i][neighbor]) # node index of neighbor
 
-            diff = (new_x[j]- new_x[i], new_y[j] - new_y[i])
+            diff = (tile_x[j] - tile_x[i], tile_y[j] - tile_y[i]) # vector pointing to neighbor
             if diff[0] and diff[1]:
-                distance = math.sqrt(diff[0] ** 2 + (diff[1] * 2.2) ** 2)
+                # adjusted distance based on the fact that tiles are 2:1 height:width aspect ratio
+                distance = math.sqrt(diff[0] ** 2 + (diff[1] * 2) ** 2)
 
-                step = 0
+                step = 1 # draw a dot between node and its neighbor every step
                 while step < distance:
-                    p = step / distance
-                    (point_x, point_y) = (new_x[i] + diff[0] * p, new_y[i] + diff[1] * p)
+                    p = step / distance # p is percent of distance covered at current step
+                    (point_x, point_y) = (tile_x[i] + diff[0] * p, tile_y[i] + diff[1] * p)
 
-                    if step == 20 and draw_eth:
-                        if stdscr.inch(int(point_y), int(point_x)) == 32:
-                            stdscr.addstr(int(point_y), int(point_x), interfaces[i][k], curses.color_pair(2))
+                    # draw interface info at step 20
+                    if draw_eth and step == 10:
+                        stdscr.addstr(int(point_y), int(point_x), interfaces[i][neighbor], curses.color_pair(2))
 
-                    if step % 10 == 0:
-                        if stdscr.inch(int(point_y), int(point_x)) == 32:
+                    # draw a dot at every 5 steps to show connection
+                    if step % 5 == 0:
+                        if stdscr.inch(int(point_y), int(point_x)) == 32: # if space not taken by node or interface name
                             stdscr.addch(int(point_y), int(point_x), ".")
                     step += 1
-    stdscr.addstr(0, 0, "Here's your topology, press any key to continue...")
     stdscr.refresh()
 
 def draw(stdscr):
@@ -93,7 +105,7 @@ def draw(stdscr):
     while iter < num_iterations:
         for i in range(len(nodes)):
             for j in range(len(nodes)):
-                expected = paths[i][j]
+                expected = path_lengths[i][j]
                 if expected:
                     diff = (x[j] - x[i], y[j] - y[i])
                     distance = get_distance(diff)
@@ -107,7 +119,7 @@ def draw(stdscr):
                     y[i] += diff[1] * delta
         iter += 1
         render(stdscr)
-
+    stdscr.addstr(0, 0, "Here's your topology, press any key to continue...")
     stdscr.getch()
 
 wrapper(draw)
