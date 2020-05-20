@@ -8,7 +8,7 @@ class RoutingController(object):
         self.topo = Topology(db="topology.db")
 
     def main(self):
-        draw_topology.run(self.topo)
+        save_topology.run(self.topo)
 
 if __name__ == "__main__":
     controller = RoutingController().main()
