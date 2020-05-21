@@ -21,6 +21,6 @@ Instructions
 ------------
 There are two main files in this program: `draw_topology.py` and `save_topology.py`.
 1. `save_topology.py` should be run in the controller. The controller should `import save_topology` and call `save_topology.main(self.topo)`, where `self.topo` is the controller's topology object. See `controller/routing-controller.py` for an example.
-1. run `sudo p4run --config topology/p4app-fattree.json`, this should also run controller and `save_topology.py`. Which should generate two files `edges.csv` and `paths.csv`, containing the topology information needed by the program.
+1. run `sudo p4run --config topology/p4app-fattree.json`. This should also run the controller automatically. Also run the controller if it is not run automatically. This should generate two files `edges.csv` and `paths.csv`, containing the topology information needed by the program.
 1. run `python3 controller/draw_topology.py` in the same directory as the generated csv files. This could take about 5 seconds for a 4-fattree topology.
 1. Alternatively, run `python3 controller/draw_topology.py true` to see the training process animation.
